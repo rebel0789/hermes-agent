@@ -2047,7 +2047,13 @@ def _apply_model_switch(
             base_url=result.base_url,
             api_mode=result.api_mode,
         )
-        _restart_slash_worker(sid, session)
+        # Model switches initiated outside slash.exec (e.g. the Desktop picker)
+        # must not tear down the persistent slash-worker subprocess inline.
+        # Rapid picker changes can race an unrelated slash.exec and surface
+        # transport-level errors like "Broken pipe" / "slash worker closed pipe"
+        # even though the model switch itself succeeded. Mark the worker stale and
+        # let slash.exec recreate it lazily on the next actual slash command.
+        session["slash_worker_stale"] = True
         _persist_live_session_runtime(session)
         _emit("session.info", sid, _session_info(agent, session))
 

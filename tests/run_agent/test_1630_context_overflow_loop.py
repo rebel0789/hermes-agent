@@ -260,11 +260,10 @@ class TestContextOverflowErrorMessages:
 # ---------------------------------------------------------------------------
 
 class TestAgentSkipsPersistenceForLargeFailedSessions:
-    """When a 400 error occurs and the session is large, the agent
-    should skip persisting only for confirmed context-overflow failures."""
+    """Large failed sessions skip persistence only for confirmed context overflow."""
 
     def test_large_context_overflow_400_skips_persistence(self):
-        """Status 400 + high token count + context overflow should skip persistence."""
+        """High token count + context overflow should skip persistence."""
         is_context_length_error = True
         approx_tokens = 60000  # > 50000 threshold
         api_messages = [{"role": "user", "content": "x"}] * 10
@@ -282,7 +281,7 @@ class TestAgentSkipsPersistenceForLargeFailedSessions:
         assert not should_skip
 
     def test_small_session_400_persists_normally(self):
-        """Status 400 + small session should still persist."""
+        """Small context-overflow failures should still persist."""
         is_context_length_error = True
         approx_tokens = 5000  # < 50000
         api_messages = [{"role": "user", "content": "x"}] * 10  # < 80
@@ -291,7 +290,7 @@ class TestAgentSkipsPersistenceForLargeFailedSessions:
         assert not should_skip
 
     def test_non_400_error_persists_normally(self):
-        """Non-400 errors should always persist normally."""
+        """Non-context errors should always persist normally."""
         is_context_length_error = False
         approx_tokens = 100000  # Large session, but not a 400
         api_messages = [{"role": "user", "content": "x"}] * 100

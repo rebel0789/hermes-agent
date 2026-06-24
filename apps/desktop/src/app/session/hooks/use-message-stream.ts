@@ -77,6 +77,8 @@ interface QueuedStreamDeltas {
   reasoning: string
 }
 
+type AssistantCompletionStatus = 'complete' | 'error'
+
 type SessionRuntimeStatePatch = Partial<
   Pick<
     ClientSessionState,
@@ -527,7 +529,7 @@ export function useMessageStream({
   )
 
   const completeAssistantMessage = useCallback(
-    (sessionId: string, text: string, options?: { status?: string }) => {
+    (sessionId: string, text: string, options?: { status?: AssistantCompletionStatus }) => {
       let shouldHydrate = false
 
       const completedState = updateSessionState(sessionId, state => {
@@ -890,7 +892,10 @@ export function useMessageStream({
 
         const finalText = coerceGatewayText(payload?.text) || coerceGatewayText(payload?.rendered)
         completeAssistantMessage(sessionId, finalText, {
-          status: typeof payload?.status === 'string' ? payload.status : undefined
+          status:
+            payload?.status === 'error' || payload?.status === 'complete'
+              ? payload.status
+              : undefined
         })
 
         if (isActiveEvent) {
