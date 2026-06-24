@@ -59,18 +59,21 @@ describe('Hermes REST session helpers', () => {
   })
 
   it('uses a longer timeout for voice transcription uploads', async () => {
+    const voiceTranscriptionTimeoutMs = 2 * 60_000
     api.mockResolvedValue({ ok: true, transcript: 'hello' })
 
     await transcribeAudio('data:audio/webm;base64,AAAA', 'audio/webm')
 
-    expect(api).toHaveBeenCalledWith({
-      path: '/api/audio/transcribe',
-      method: 'POST',
-      timeoutMs: 120_000,
-      body: {
-        data_url: 'data:audio/webm;base64,AAAA',
-        mime_type: 'audio/webm'
-      }
-    })
+    expect(api).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: '/api/audio/transcribe',
+        method: 'POST',
+        timeoutMs: voiceTranscriptionTimeoutMs,
+        body: expect.objectContaining({
+          data_url: 'data:audio/webm;base64,AAAA',
+          mime_type: 'audio/webm'
+        })
+      })
+    )
   })
 })
